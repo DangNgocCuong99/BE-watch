@@ -66,12 +66,11 @@ export const sendEmail = async (otp: string,emailTo:string) => {
 
 export const inputOtp: RequestHandler = async (req,res) => {
     try {
-        const {otp} =req.body
-        const { username, password } = { username: 'admin', password: 'admin' }
+        const {otp,username, password} =req.body
         const check = await UserModel.findOne({ 'username': username, 'password': password })
         if (check && check.otp === otp) {
             await UserModel.findByIdAndUpdate(check._id, { status: "active", otp: null })
-            res.send('OTP thành công');
+            res.send('Kích hoạt tài khoản thành công');
         } else {
             res.send('OTP không chính xác');
         }
@@ -85,7 +84,8 @@ export const inputOtp: RequestHandler = async (req,res) => {
 export const login: RequestHandler = async (req, res) => {
 // export const login = async () => {
     try {
-        const check = await checkActiveUser()
+        const { username, password } = req.body
+        const check = await checkActiveUser(username,password)
         if (check.status) {
             const token = generateAccessToken(check.data.userId)
            res.send(dataReturn(token,check.message));
@@ -97,9 +97,8 @@ export const login: RequestHandler = async (req, res) => {
     }
 }
 
-const checkActiveUser = async () => {
+const checkActiveUser = async (username:string, password:string) => {
     try {
-        const { username, password } = { username: 'admin', password: 'admin' }
         const check = await UserModel.findOne({ 'username': username, 'password': password })
         if (check) {
             if (check.status === accountStatusType.inactive) {

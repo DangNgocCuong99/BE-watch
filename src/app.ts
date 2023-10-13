@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import mongoose, { ConnectOptions } from 'mongoose';
 import dotenv from 'dotenv'
-import routerUser from './route/auth'
+import routerUser from './route/user'
 import routerAuth from './route/auth';
 
 process.on("uncaughtException", (err) => {
