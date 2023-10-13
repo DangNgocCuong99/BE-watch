@@ -3,10 +3,7 @@ import cors from 'cors';
 import mongoose, { ConnectOptions } from 'mongoose';
 import dotenv from 'dotenv'
 import routerUser from './route/auth'
-import { createProduct } from './controller/product';
-
-
-
+import routerAuth from './route/auth';
 
 process.on("uncaughtException", (err) => {
     console.log("UNCAUGHT EXCEPTION! 💥 Shutting down...");
@@ -28,6 +25,7 @@ const DB = MODE === "online" ? DATABASE.replace(
 app.use(cors({}));
 app.use(express.json());
 app.use('/user', routerUser)
+app.use('/auth' , routerAuth)
 
 app.use(function (req, res) {
     res.status(404).send({ url: req.originalUrl + " not found" });
@@ -46,7 +44,6 @@ const Connection = async () => {
         } as ConnectOptions);
         console.log(`modeMongoDb: ${process.env.mode}`);
         console.log(` Database Connected : ${DB}`);
-        createProduct()
     } catch (error) {
         console.log(error);
     }

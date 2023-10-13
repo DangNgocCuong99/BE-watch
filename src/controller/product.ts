@@ -20,20 +20,20 @@ export const getProduct: RequestHandler = async (req, res)=>{
     }
 }
 
-// export const createProduct: RequestHandler = async (req) => {
-    export const createProduct = async () => {
+export const createProduct: RequestHandler = async (req,res) => {
+    // export const createProduct = async () => {
     try {
-        // const dataBody = req.body
-        const dataBody = {
-            name: "san pham 2",
-            originalPrice: 900000,
-            discountedPrice: 1000,
-            images: ["img1.jpg", "img2.jpg"],
-        }
+        const dataBody = req.body
+        // const dataBody = {
+        //     name: "san pham 2",
+        //     originalPrice: 900000,
+        //     discountedPrice: 1000,
+        //     images: ["img1.jpg", "img2.jpg"],
+        // }
         const data = await productModel.create(dataBody)
-        console.log(dataReturn(data,'them moi thanh cong'))
+       res.send(dataReturn(data,'them moi thanh cong'))
     } catch (error) {
-        console.log(error)
+       res.send(error)
     }
 }
 

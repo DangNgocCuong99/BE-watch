@@ -8,13 +8,12 @@ import { promisify } from 'util'
 import { AppError } from '../ulti/appError';
 import mongoose from 'mongoose';
 
-
-const transporter = nodemailer.createTransport({
+const transporter = (user:string,pass:string)=>nodemailer.createTransport({
     service: "gmail",
     auth: {
         // TODO: replace `user` and `pass` values from <https://forwardemail.net>
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: user,
+        pass: pass,
     },
 });
 
@@ -31,16 +30,21 @@ const generateOTP = () => {
 }
 
 // async..await is not allowed in global scope, must use a wrapper
-export const sendEmail = async (otp: string) => {
+export const sendEmail = async (otp: string,emailTo:string) => {
+    console.log("🚀 ~ file: auth.ts:35 ~ sendEmail ~ email:", emailTo)
+    console.log(process.env.EMAIL_USER , process.env.EMAIL_PASS);
+    
     try {
         // send mail with defined transport object
-        const info = await transporter.sendMail({
-            from: '"Fred Foo 👻" <foo@example.com>', // sender address
-            to: "dangngoccuong99@gmail.com", // list of receivers
+        const info = await transporter(process.env.EMAIL_USER,process.env.EMAIL_PASS).sendMail({
+            from: `"hi,how are you? 👻" ${process.env.EMAIL_USER}`, // sender address
+            to: emailTo, // list of receivers
             subject: "Hello ✔", // Subject line
             text: `Mã otp của bạn là ${otp} . OTP sẽ hết hạn sau 1 phút`, // plain text body
             // html: "<b>Hello world?</b>", // html body
         });
+        console.log(info);
+        
 
         console.log("Message sent: %s", info.messageId);
         // Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
@@ -50,45 +54,46 @@ export const sendEmail = async (otp: string) => {
         //       Or you can use the "preview-email" npm package to preview emails locally in browsers and iOS Simulator
         //       <https://github.com/forwardemail/preview-email>
         //
-        return info.messageId;
+        console.log(info.messageId);
+         
     } catch (error) {
-        return error
+        console.log(error);
+         
     }
 
 }
 
 
-export const inputOtp = async () => {
+export const inputOtp: RequestHandler = async (req,res) => {
     try {
-        const otp = '1234'
+        const {otp} =req.body
         const { username, password } = { username: 'admin', password: 'admin' }
         const check = await UserModel.findOne({ 'username': username, 'password': password })
         if (check && check.otp === otp) {
             await UserModel.findByIdAndUpdate(check._id, { status: "active", otp: null })
-            console.log('OTP thành công');
+            res.send('OTP thành công');
         } else {
-            console.log('OTP không chính xác');
+            res.send('OTP không chính xác');
         }
 
     } catch (error) {
-        console.log(error);
+        res.send(error);
 
     }
 }
 
-// export const login: RequestHandler = async (req, res) => {
-export const login = async () => {
+export const login: RequestHandler = async (req, res) => {
+// export const login = async () => {
     try {
         const check = await checkActiveUser()
-        console.log("🚀 ~ file: user.ts:69 ~ login ~ check:", check)
         if (check.status) {
             const token = generateAccessToken(check.data.userId)
-            console.log(check.message, token);
+           res.send(dataReturn(token,check.message));
         } else {
-            console.log(check.message)
+           res.send(errorReturn(check.message))
         }
     } catch (error) {
-        console.log(errorReturn(getErrorMessage(error)))
+       res.send(errorReturn(getErrorMessage(error)))
     }
 }
 
@@ -110,25 +115,25 @@ const checkActiveUser = async () => {
     }
 }
 
-// export const register: RequestHandler = async (req, res) => {
-export const register = async () => {
+export const register: RequestHandler = async (req, res) => {
     try {
-        const data = { username: 'admin', password: 'admin', email: 'admin@gmail.com' }
+        const data = req.body 
+        console.log("🚀 ~ file: auth.ts:118 ~ //register ~ data:", data)
         const check = await UserModel.findOne({ 'username': data.username })
         if (check) {
-            console.log(errorReturn('Đã tồn tại tài khoản'));
+            res.send(errorReturn('Đã tồn tại tài khoản'));
         } else {
             const otp = generateOTP()
-            await sendEmail(otp)
-            await UserModel.create(data)
-            console.log(dataReturn({ username: data.username }, 'Đăng ký thành công'));
+            await sendEmail(otp,data.email)
+            await UserModel.create({...data,otp:otp})
+            res.send(dataReturn({ username: data.username }, 'Đăng ký thành công'));
         }
     } catch (error) {
-        console.log(errorReturn(getErrorMessage(error)));
+        res.send(errorReturn(getErrorMessage(error)));
     }
 }
 
-export const isLoggedIn: RequestHandler = async (req, _, next) => {
+export const isLoggedIn: RequestHandler = async (req, res, next) => {
     try {
         const token = req.headers.authorization.startsWith('Bearer')
         const decoded = await promisify(jwt.verify).bind(token, process.env.JWT_SECRET)
@@ -137,7 +142,7 @@ export const isLoggedIn: RequestHandler = async (req, _, next) => {
             return next()
         }
     } catch (error) {
-        console.log(error);
+        res.send(error);
 
     }
 }
@@ -172,7 +177,7 @@ export const protect: RequestHandler = async (req,res,next) => {
         res.locals.user = currentUser;
         next();
     } catch (error) {
-        console.log(error);
+        res.send(error);
     }
 }
 

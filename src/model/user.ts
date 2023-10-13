@@ -6,7 +6,7 @@ const userSchema = new mongoose.Schema({
   password: String,
   email: { type: String },
   status: { type: String, default: accountStatusType.inactive },
-  otp: { type: String },
+  otp: { type: String,default:"" },
   role: { type: String, default: roleAccountType.user },
   createdAt: { type: Date, default: Date.now }
 });
