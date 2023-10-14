@@ -37,7 +37,7 @@ export const sendEmail = async (otp: string,emailTo:string) => {
     try {
         // send mail with defined transport object
         const info = await transporter(process.env.EMAIL_USER,process.env.EMAIL_PASS).sendMail({
-            from: `"hi,how are you? 👻" ${process.env.EMAIL_USER}`, // sender address
+            from: `"shop watch" ${process.env.EMAIL_USER}`, // sender address
             to: emailTo, // list of receivers
             subject: "Hello ✔", // Subject line
             text: `Mã otp của bạn là ${otp} . OTP sẽ hết hạn sau 1 phút`, // plain text body
@@ -149,16 +149,28 @@ export const isLoggedIn: RequestHandler = async (req, res, next) => {
 export const protect: RequestHandler = async (req,res,next) => {
     try {
         let token:string
+        console.log(req.headers);
+        console.log( req.headers.authorization &&
+            req.headers.authorization.startsWith('Bearer'));
+        console.log(req.cookies?.jwt);
         if (
             req.headers.authorization &&
             req.headers.authorization.startsWith('Bearer')
         ) {
+            console.log('1');
             token = req.headers.authorization.split(' ')[1];
         } else if (req.cookies.jwt) {
+            console.log('2');
             token = req.cookies.jwt;
+        }else{
+            console.log(3);
+        console.log('token',token);
+            
         }
+        console.log('token',token);
+        
         if (!token) {
-            return next(
+            res.send(
                 new AppError('You are not logged in! Please log in to get access.', 401)
             );
         }
@@ -166,7 +178,7 @@ export const protect: RequestHandler = async (req,res,next) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET) as {id:string}
         const currentUser = await UserModel.findById(decoded.id);
         if (!currentUser) {
-            return next(
+            res.send(
                 new AppError(
                     'The user belonging to this token does no longer exist.',
                     401
@@ -181,9 +193,12 @@ export const protect: RequestHandler = async (req,res,next) => {
 }
 
 export const restrictTo = (...roles: string[]): RequestHandler => {
+
     return (_req, res, next) => {
+console.log('restris');
+
         if (!roles.includes(res.locals.user.role)) {
-            return next(
+            res.send(
                 new AppError('You do not have permission to perform this action', 403)
             );
         }
