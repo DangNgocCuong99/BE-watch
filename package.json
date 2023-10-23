@@ -25,11 +25,14 @@
     "@types/cors": "^2.8.14",
     "@types/mongoose": "^5.11.97",
     "cors": "^2.8.5",
+    "crypto": "^1.0.1",
     "dotenv": "^16.3.1",
     "express": "^4.17.1",
     "jsonwebtoken": "^9.0.2",
+    "moment": "^2.29.4",
     "nodemailer": "^6.9.6",
     "nodemon": "^3.0.1",
+    "qs": "^6.11.2",
     "util.promisify": "^1.1.2"
   }
 }

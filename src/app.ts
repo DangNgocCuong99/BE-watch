@@ -4,6 +4,7 @@ import mongoose, { ConnectOptions } from 'mongoose';
 import dotenv from 'dotenv'
 import routerUser from './route/user'
 import routerAuth from './route/auth';
+import routerPayment from './route/payment';
 
 process.on("uncaughtException", (err) => {
     console.log("UNCAUGHT EXCEPTION! 💥 Shutting down...");
@@ -26,6 +27,7 @@ app.use(cors({}));
 app.use(express.json());
 app.use('/user', routerUser)
 app.use('/auth' , routerAuth)
+app.use('/payment',routerPayment)
 
 app.use(function (req, res) {
     res.status(404).send({ url: req.originalUrl + " not found" });
